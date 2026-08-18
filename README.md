@@ -1,4 +1,4 @@
-# 🌀 Echo
+#  Echo
 
 > *"Every run you make becomes a platform for the next one."*
 
@@ -8,7 +8,7 @@ I built this using pure vanilla JavaScript and the HTML5 Canvas API—no heavy e
 
 ---
 
-## 🎮 How It Works & Controls
+## How It Works & Controls
 
 * **A / D** or **Arrow Keys** — Move
 * **Space** — Jump
@@ -19,7 +19,7 @@ Your goal is simple: reach the **green exit**. If a jump looks impossible or a g
 
 ---
 
-## 🕹️ What's Inside
+## What's Inside
 
 * **15 Levels + Tutorial:** Starts simple to teach the echo mechanic, then introduces moving platforms and spike traps.
 * **Level Progression:** Unlocks levels as you beat them, tracks your total progress, and saves checkmarks.
@@ -27,11 +27,3 @@ Your goal is simple: reach the **green exit**. If a jump looks impossible or a g
 * **Retro Vibes:** Pixel-art style, scanlines, particle effects, and custom HUD.
 
 ---
-
-## 🚀 How to Run It
-
-Since it's built on vanilla HTML/JS, you don't need `npm`, build tools, or a server setup.
-
-1. Download or clone this repo:
-   ```bash
-   git clone [https://github.com/your-username/echo.git](https://github.com/your-username/echo.git)
