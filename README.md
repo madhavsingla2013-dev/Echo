@@ -21,9 +21,9 @@ Your goal is simple: reach the **green exit**. If a jump looks impossible or a g
 
 ## What's Inside
 
-* **15 Levels + Tutorial:** Starts simple to teach the echo mechanic, then introduces moving platforms and spike traps.
+* **30 Levels + Tutorial:** Starts simple to teach the echo mechanic, then introduces moving platforms and spike traps.
 * **Level Progression:** Unlocks levels as you beat them, tracks your total progress, and saves checkmarks.
 * **Customization:** Swap your player sprite's color anytime from the pause menu.
-* **Retro Vibes:** Pixel-art style, scanlines, particle effects, and custom HUD.
+* **Retro(or Arcade)Vibes:** Pixel-art style, scanlines, particle effects, and custom HUD.
 
 ---
