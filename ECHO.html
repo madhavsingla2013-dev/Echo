@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Echo</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
@@ -20,20 +17,18 @@
       font-family: 'Courier New', Courier, monospace;
       color: #f4f4f4;
     }
-
     #game-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-
     canvas {
       background: #1a1c2c;
       border: 4px solid #5a6988;
       box-shadow: 0 0 0 4px #0d0e14, 0 0 24px rgba(65, 166, 246, 0.25);
       image-rendering: pixelated;
+      cursor: default;
     }
-
     #controls-hint {
       margin-top: 12px;
       font-size: 13px;
@@ -60,6 +55,7 @@
     gravity: 1400,
     moveSpeed: 220,
     jumpVelocity: -480,
+    jumpPadVelocity: -800,
     timeStep: 1 / 60
   };
 
@@ -81,15 +77,18 @@
     locked: '#3a3f55',
     completed: '#f4c150',
     hazard: '#e14b3d',
-    hazardEdge: '#7a1f1f'
+    hazardEdge: '#7a1f1f',
+    jumpPad: '#f4a141',
+    jumpPadTop: '#ffca36',
+    portal: '#a15ff4'
   };
 
   const PLAYER_COLORS = [
-    '#41a6f6', 
-    '#f45142', 
-    '#38b764', 
-    '#f4c150', 
-    '#a15ff4', 
+    '#41a6f6',
+    '#f45142',
+    '#38b764',
+    '#f4c150',
+    '#a15ff4',
     '#f47fc4'
   ];
 
@@ -98,8 +97,8 @@
       name: 'Level 1',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 260, h: 50 },
-        { x: 540, y: 400, w: 260, h: 50 }
+        { id: 0, x: 0, y: 400, w: 260, h: 50 },
+        { id: 1, x: 540, y: 400, w: 260, h: 50 }
       ],
       goal: { x: 700, y: 350, w: 40, h: 50 }
     },
@@ -107,9 +106,9 @@
       name: 'Level 2',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 150, h: 50 },
-        { x: 350, y: 400, w: 100, h: 50 },
-        { x: 650, y: 400, w: 150, h: 50 }
+        { id: 0, x: 0, y: 400, w: 150, h: 50 },
+        { id: 1, x: 350, y: 400, w: 100, h: 50 },
+        { id: 2, x: 650, y: 400, w: 150, h: 50 }
       ],
       goal: { x: 670, y: 350, w: 40, h: 50 }
     },
@@ -117,21 +116,21 @@
       name: 'Level 3',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 200, h: 50 },
-        { x: 600, y: 400, w: 200, h: 50 }
+        { id: 0, x: 0, y: 400, w: 200, h: 50 },
+        { id: 1, x: 600, y: 400, w: 200, h: 50 },
+        { id: 2, x: 670, y: 190, w: 100, h: 16 }
       ],
-      goal: { x: 730, y: 350, w: 40, h: 50 },
-      hazards: [
-        { x: 380, y: 390, w: 26, h: 16 }
-      ]
+      jumpPads: [{ x: 630, y: 388, w: 32, h: 12 }],
+      goal: { x: 700, y: 140, w: 40, h: 50 },
+      hazards: [{ x: 380, y: 390, w: 26, h: 16 }]
     },
     {
       name: 'Level 4',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 220, h: 50 },
-        { x: 560, y: 370, w: 240, h: 80 },
-        { x: 340, y: 385, w: 50, h: 16, movable: { axis: 'y', range: 35, speed: 1.3 } }
+        { id: 0, x: 0, y: 400, w: 220, h: 50 },
+        { id: 1, x: 560, y: 370, w: 240, h: 80 },
+        { id: 2, x: 340, y: 385, w: 50, h: 16, movable: { axis: 'y', range: 35, speed: 2.0 } }
       ],
       goal: { x: 700, y: 320, w: 40, h: 50 }
     },
@@ -139,23 +138,21 @@
       name: 'Level 5',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 90, h: 50 },
-        { x: 260, y: 400, w: 70, h: 50 },
-        { x: 500, y: 400, w: 70, h: 50 },
-        { x: 740, y: 400, w: 60, h: 50 }
+        { id: 0, x: 0, y: 400, w: 90, h: 50 },
+        { id: 1, x: 260, y: 400, w: 70, h: 50 },
+        { id: 2, x: 500, y: 400, w: 70, h: 50 },
+        { id: 3, x: 740, y: 400, w: 60, h: 50 }
       ],
       goal: { x: 755, y: 350, w: 35, h: 50 },
-      hazards: [
-        { x: 160, y: 390, w: 24, h: 16 }
-      ]
+      hazards: [{ x: 160, y: 390, w: 24, h: 16 }]
     },
     {
       name: 'Level 6',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 150, h: 50 },
-        { x: 620, y: 400, w: 180, h: 50 },
-        { x: 350, y: 385, w: 60, h: 16, movable: { axis: 'x', range: 100, speed: 0.9 } }
+        { id: 0, x: 0, y: 400, w: 150, h: 50 },
+        { id: 1, x: 620, y: 400, w: 180, h: 50 },
+        { id: 2, x: 350, y: 385, w: 60, h: 16, movable: { axis: 'x', range: 100, speed: 1.5 } }
       ],
       goal: { x: 770, y: 350, w: 30, h: 50 }
     },
@@ -163,22 +160,21 @@
       name: 'Level 7',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 120, h: 50 },
-        { x: 370, y: 400, w: 110, h: 50 },
-        { x: 730, y: 350, w: 70, h: 80 }
+        { id: 0, x: 0, y: 400, w: 120, h: 50 },
+        { id: 1, x: 370, y: 400, w: 110, h: 50 },
+        { id: 2, x: 560, y: 220, w: 130, h: 180 }
       ],
-      goal: { x: 760, y: 320, w: 35, h: 50 },
-      hazards: [
-        { x: 600, y: 390, w: 24, h: 16 }
-      ]
+      jumpPads: [{ x: 410, y: 388, w: 32, h: 12 }],
+      goal: { x: 600, y: 170, w: 40, h: 50 },
+      hazards: [{ x: 500, y: 390, w: 40, h: 16 }]
     },
     {
       name: 'Level 8',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 150, h: 50 },
-        { x: 700, y: 400, w: 100, h: 50 },
-        { x: 380, y: 385, w: 60, h: 16, movable: { axis: 'y', range: 45, speed: 1.1 } }
+        { id: 0, x: 0, y: 400, w: 150, h: 50 },
+        { id: 1, x: 700, y: 400, w: 100, h: 50 },
+        { id: 2, x: 380, y: 385, w: 60, h: 16, movable: { axis: 'y', range: 45, speed: 1.8 } }
       ],
       goal: { x: 760, y: 350, w: 30, h: 50 }
     },
@@ -186,23 +182,21 @@
       name: 'Level 9',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 60, h: 50 },
-        { x: 270, y: 400, w: 40, h: 50 },
-        { x: 520, y: 400, w: 40, h: 50 },
-        { x: 770, y: 400, w: 30, h: 50 }
+        { id: 0, x: 0, y: 400, w: 60, h: 50 },
+        { id: 1, x: 270, y: 400, w: 40, h: 50 },
+        { id: 2, x: 520, y: 400, w: 40, h: 50 },
+        { id: 3, x: 770, y: 400, w: 30, h: 50 }
       ],
       goal: { x: 775, y: 350, w: 20, h: 50 },
-      hazards: [
-        { x: 180, y: 390, w: 20, h: 16 }
-      ]
+      hazards: [{ x: 180, y: 390, w: 20, h: 16 }]
     },
     {
       name: 'Level 10',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 100, h: 50 },
-        { x: 700, y: 340, w: 100, h: 60 },
-        { x: 350, y: 380, w: 60, h: 16, movable: { axis: 'x', range: 120, speed: 0.8 } }
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 700, y: 340, w: 100, h: 60 },
+        { id: 2, x: 350, y: 380, w: 60, h: 16, movable: { axis: 'x', range: 120, speed: 1.2 } }
       ],
       goal: { x: 750, y: 300, w: 30, h: 50 }
     },
@@ -210,22 +204,21 @@
       name: 'Level 11',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 80, h: 50 },
-        { x: 380, y: 400, w: 60, h: 50 },
-        { x: 740, y: 400, w: 60, h: 50 }
+        { id: 0, x: 0, y: 400, w: 80, h: 50 },
+        { id: 1, x: 380, y: 400, w: 60, h: 50 },
+        { id: 2, x: 740, y: 400, w: 60, h: 50 }
       ],
+      jumpPads: [{ x: 40, y: 388, w: 32, h: 12 }],
       goal: { x: 755, y: 350, w: 25, h: 50 },
-      hazards: [
-        { x: 560, y: 390, w: 24, h: 16 }
-      ]
+      hazards: [{ x: 560, y: 390, w: 24, h: 16 }]
     },
     {
       name: 'Level 12',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 90, h: 50 },
-        { x: 710, y: 360, w: 90, h: 70 },
-        { x: 380, y: 380, w: 55, h: 16, movable: { axis: 'y', range: 40, speed: 1.2 } }
+        { id: 0, x: 0, y: 400, w: 90, h: 50 },
+        { id: 1, x: 710, y: 360, w: 90, h: 70 },
+        { id: 2, x: 380, y: 380, w: 55, h: 16, movable: { axis: 'y', range: 40, speed: 1.6 } }
       ],
       goal: { x: 750, y: 330, w: 25, h: 50 }
     },
@@ -233,39 +226,238 @@
       name: 'Level 13',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 40, h: 50 },
-        { x: 270, y: 400, w: 25, h: 50 },
-        { x: 525, y: 400, w: 25, h: 50 },
-        { x: 780, y: 400, w: 20, h: 50 }
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 270, y: 400, w: 25, h: 50 },
+        { id: 2, x: 525, y: 400, w: 25, h: 50 },
+        { id: 3, x: 780, y: 400, w: 20, h: 50 }
       ],
       goal: { x: 785, y: 350, w: 15, h: 50 },
-      hazards: [
-        { x: 400, y: 390, w: 20, h: 16 }
-      ]
+      hazards: [{ x: 400, y: 390, w: 20, h: 16 }]
     },
     {
       name: 'Level 14',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 80, h: 50 },
-        { x: 730, y: 350, w: 70, h: 80 },
-        { x: 380, y: 380, w: 55, h: 16, movable: { axis: 'x', range: 130, speed: 0.85 } }
+        { id: 0, x: 0, y: 400, w: 80, h: 50 },
+        { id: 1, x: 730, y: 350, w: 70, h: 80 },
+        { id: 2, x: 380, y: 380, w: 55, h: 16, movable: { axis: 'x', range: 130, speed: 1.4 } }
       ],
+      jumpPads: [{ x: 20, y: 388, w: 32, h: 12 }],
       goal: { x: 755, y: 320, w: 30, h: 50 }
     },
     {
       name: 'Level 15',
       startPos: { x: 40, y: 350 },
       platforms: [
-        { x: 0, y: 400, w: 60, h: 50 },
-        { x: 320, y: 380, w: 60, h: 70 },
-        { x: 640, y: 350, w: 160, h: 100 },
-        { x: 470, y: 355, w: 55, h: 16, movable: { axis: 'y', range: 45, speed: 1.0 } }
+        { id: 0, x: 0, y: 400, w: 60, h: 50 },
+        { id: 1, x: 320, y: 380, w: 60, h: 70 },
+        { id: 2, x: 640, y: 350, w: 160, h: 100 },
+        { id: 3, x: 470, y: 355, w: 55, h: 16, movable: { axis: 'y', range: 45, speed: 1.5 } }
       ],
       goal: { x: 770, y: 300, w: 30, h: 50 },
+      hazards: [{ x: 150, y: 390, w: 24, h: 16 }]
+    },
+    {
+      name: 'Level 16',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 120, h: 50 },
+        { id: 1, x: 300, y: 300, w: 100, h: 20 },
+        { id: 2, x: 600, y: 200, w: 180, h: 200 }
+      ],
+      jumpPads: [
+        { x: 50, y: 388, w: 32, h: 12 },
+        { x: 350, y: 288, w: 32, h: 12 }
+      ],
+      goal: { x: 720, y: 150, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 17',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 150, h: 50 },
+        { id: 1, x: 650, y: 400, w: 150, h: 50 }
+      ],
+      jumpPads: [{ x: 100, y: 388, w: 32, h: 12 }],
+      goal: { x: 720, y: 350, w: 40, h: 50 },
+      hazards: [{ x: 300, y: 430, w: 250, h: 20 }]
+    },
+    {
+      name: 'Level 18',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 250, y: 350, w: 80, h: 20 },
+        { id: 2, x: 450, y: 280, w: 80, h: 20 },
+        { id: 3, x: 650, y: 200, w: 120, h: 20 }
+      ],
+      jumpPads: [
+        { x: 50, y: 388, w: 32, h: 12 },
+        { x: 474, y: 268, w: 32, h: 12 }
+      ],
+      goal: { x: 700, y: 150, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 19',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 80, h: 50 },
+        { id: 1, x: 700, y: 400, w: 100, h: 50 },
+        { id: 2, x: 350, y: 320, w: 80, h: 16, movable: { axis: 'x', range: 180, speed: 1.8 } }
+      ],
+      jumpPads: [{ x: 30, y: 388, w: 32, h: 12 }],
+      goal: { x: 730, y: 350, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 20',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 300, y: 380, w: 60, h: 20 },
+        { id: 2, x: 500, y: 280, w: 60, h: 20 },
+        { id: 3, x: 700, y: 180, w: 100, h: 200 }
+      ],
+      jumpPads: [
+        { x: 310, y: 368, w: 32, h: 12 },
+        { x: 514, y: 268, w: 32, h: 12 }
+      ],
+      goal: { x: 730, y: 130, w: 40, h: 50 },
+      hazards: [{ x: 180, y: 430, w: 100, h: 20 }]
+    },
+    {
+      name: 'Level 21',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 70, h: 50 },
+        { id: 1, x: 730, y: 380, w: 70, h: 70 }
+      ],
+      jumpPads: [{ x: 20, y: 388, w: 32, h: 12 }],
+      goal: { x: 745, y: 330, w: 35, h: 50 },
+      hazards: [{ x: 200, y: 430, w: 350, h: 20 }]
+    },
+    {
+      name: 'Level 22',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 200, y: 380, w: 50, h: 16, movable: { axis: 'y', range: 60, speed: 1.5 } },
+        { id: 2, x: 400, y: 300, w: 50, h: 16, movable: { axis: 'y', range: 60, speed: 1.8 } },
+        { id: 3, x: 650, y: 220, w: 120, h: 200 }
+      ],
+      jumpPads: [{ attachedPlatformId: 2, localX: 9, localY: -12, w: 32, h: 12 }],
+      goal: { x: 700, y: 170, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 23',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 90, h: 50 },
+        { id: 1, x: 250, y: 400, w: 90, h: 50 },
+        { id: 2, x: 500, y: 400, w: 90, h: 50 },
+        { id: 3, x: 710, y: 300, w: 90, h: 150 }
+      ],
+      jumpPads: [{ x: 530, y: 388, w: 32, h: 12 }],
+      goal: { x: 735, y: 250, w: 40, h: 50 },
+      hazards: [{ x: 120, y: 390, w: 100, h: 16 }, { x: 370, y: 390, w: 100, h: 16 }]
+    },
+    {
+      name: 'Level 24',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 80, h: 50 },
+        { id: 1, x: 720, y: 180, w: 80, h: 270 },
+        { id: 2, x: 580, y: 300, w: 80, h: 20 }
+      ],
+      jumpPads: [
+        { x: 25, y: 388, w: 32, h: 12 },
+        { x: 604, y: 288, w: 32, h: 12 }
+      ],
+      goal: { x: 740, y: 130, w: 40, h: 50 },
+      hazards: [{ x: 250, y: 330, w: 300, h: 20 }]
+    },
+    {
+      name: 'Level 25',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 60, h: 50 },
+        { id: 1, x: 180, y: 380, w: 50, h: 20 },
+        { id: 2, x: 560, y: 240, w: 60, h: 16 },
+        { id: 3, x: 640, y: 220, w: 50, h: 16, movable: { axis: 'y', range: 45, speed: 1.5 } },
+        { id: 4, x: 720, y: 150, w: 80, h: 300 }
+      ],
+      portals: [
+        { entry: { x: 195, y: 340, w: 20, h: 36 }, exit: { x: 575, y: 200 }, color: PALETTE.portal }
+      ],
+      goal: { x: 740, y: 100, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 26',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 680, y: 400, w: 120, h: 50 },
+        { id: 2, x: 330, y: 120, w: 250, h: 26 }
+      ],
+      jumpPads: [{ x: 30, y: 388, w: 32, h: 12 }],
+      portals: [
+        { entry: { x: 715, y: 350, w: 24, h: 42 }, exit: { x: 340, y: 70 }, color: PALETTE.portal }
+      ],
+      goal: { x: 520, y: 70, w: 40, h: 50 },
       hazards: [
-        { x: 150, y: 390, w: 24, h: 16 }
+        { x: 200, y: 430, w: 350, h: 20 },
+        { x: 410, y: 104, w: 50, h: 16 }
       ]
+    },
+    {
+      name: 'Level 27',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 80, h: 50 },
+        { id: 1, x: 260, y: 360, w: 60, h: 20 },
+        { id: 2, x: 480, y: 290, w: 60, h: 20 },
+        { id: 3, x: 700, y: 220, w: 100, h: 230 }
+      ],
+      jumpPads: [{ x: 494, y: 278, w: 32, h: 12 }],
+      goal: { x: 730, y: 170, w: 40, h: 50 },
+      hazards: [
+        { x: 100, y: 430, w: 140, h: 20 },
+        { x: 340, y: 430, w: 340, h: 20 }
+      ]
+    },
+    {
+      name: 'Level 28',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 60, h: 50 },
+        { id: 1, x: 740, y: 350, w: 60, h: 100 }
+      ],
+      jumpPads: [{ x: 15, y: 388, w: 32, h: 12 }],
+      goal: { x: 750, y: 300, w: 40, h: 50 },
+      hazards: [{ x: 100, y: 430, w: 550, h: 20 }]
+    },
+    {
+      name: 'Level 29',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 120, h: 50 },
+        { id: 1, x: 300, y: 400, w: 80, h: 50, movable: { axis: 'y', range: 80, speed: 2.0 } },
+        { id: 2, x: 650, y: 250, w: 150, h: 200 }
+      ],
+      goal: { x: 700, y: 200, w: 40, h: 50 }
+    },
+    {
+      name: 'Level 30',
+      startPos: { x: 40, y: 350 },
+      platforms: [
+        { id: 0, x: 0, y: 400, w: 100, h: 50 },
+        { id: 1, x: 380, y: 330, w: 80, h: 16 },
+        { id: 2, x: 480, y: 270, w: 80, h: 16 },
+        { id: 3, x: 590, y: 230, w: 60, h: 16, movable: { axis: 'y', range: 70, speed: 1.8 } },
+        { id: 4, x: 670, y: 150, w: 130, h: 300 }
+      ],
+      jumpPads: [{ x: 25, y: 388, w: 32, h: 12 }],
+      goal: { x: 710, y: 100, w: 40, h: 50 },
+      hazards: [{ x: 100, y: 430, w: 570, h: 20 }]
     }
   ];
 
@@ -273,39 +465,39 @@
     name: 'Tutorial',
     startPos: { x: 40, y: 350 },
     platforms: [
-      { x: 0, y: 400, w: 260, h: 50 },
-      { x: 540, y: 400, w: 260, h: 50 }
+      { id: 0, x: 0, y: 400, w: 260, h: 50 },
+      { id: 1, x: 540, y: 400, w: 260, h: 50 }
     ],
+    jumpPads: [],
     goal: { x: 700, y: 350, w: 40, h: 50 }
   };
 
+  let gameState = 'menu';
+  let isMenuOpen = false;
+  let isSettingsOpen = false;
+  let playerColorIndex = 0;
+  let musicEnabled = true;
+  let sfxEnabled = true;
+
+  let mouseX = 0;
+  let mouseY = 0;
+
+  let levelSelectPage = 0;
+  const LEVELS_PER_PAGE = 15;
+
+  let tutorialStep = 0;
   let isTutorial = false;
   let tutorialCompleted = false;
 
-  function startTutorial() {
-    isTutorial = true;
-    activePlatforms = TUTORIAL_LEVEL.platforms;
-    currentHazards = [];
-    currentGoal = TUTORIAL_LEVEL.goal;
-    levelStartPos = TUTORIAL_LEVEL.startPos;
-    echoes.length = 0;
-    particles.length = 0;
-    runNumber = 1;
-    isMenuOpen = false;
-    startNewRun();
-    gameState = 'playing';
-  }
-
-  let gameState = 'menu';
-  let isMenuOpen = false;
-  let playerColorIndex = 0;
-  
   let currentLevelIndex = 0;
   let highestUnlockedLevel = 0;
   const completedLevels = new Set();
+  let totalGameTime = 0;
 
   let activePlatforms = [];
   let currentHazards = [];
+  let currentJumpPads = [];
+  let currentPortals = [];
   let currentGoal = { x: 0, y: 0, w: 0, h: 0 };
   let levelStartPos = { x: 0, y: 0 };
 
@@ -317,19 +509,10 @@
 
   let toastMessage = '';
   let toastTimer = 0;
-  let animationTimer = 0;
+  let portalCooldown = 0;
+  let runTickCount = 0;
 
-  const player = {
-    x: 0,
-    y: 0,
-    w: 24,
-    h: 32,
-    vx: 0,
-    vy: 0,
-    grounded: false,
-    facing: 1
-  };
-
+  const player = { x: 0, y: 0, w: 24, h: 32, vx: 0, vy: 0, grounded: false, facing: 1, groundedObstacle: null };
   const keys = {};
 
   function getFallRestY() {
@@ -337,6 +520,7 @@
   }
 
   function triggerToast(text, duration = 2.0) {
+    if (isTutorial) return;
     toastMessage = text;
     toastTimer = duration;
   }
@@ -363,78 +547,127 @@
     );
   }
 
-  function getPlatformRect(p, time) {
+  function getPlatformRect(p, tick) {
     let x = p.x;
     let y = p.y;
     if (p.movable) {
-      const offset = Math.sin(time * p.movable.speed) * p.movable.range;
+      const timeVal = tick * PHYSICS.timeStep;
+      const offset = Math.sin(timeVal * p.movable.speed) * p.movable.range;
       if (p.movable.axis === 'x') {
         x += offset;
       } else {
         y += offset;
       }
     }
-    return { x, y, w: p.w, h: p.h };
+    return { id: p.id, x: x, y: y, w: p.w, h: p.h, movable: p.movable };
   }
 
-  function getBackButtonBounds() {
-    return { x: 8, y: 8, w: 70, h: 28 };
+  function getJumpPadRect(pad, tick) {
+    if (pad.attachedPlatformId !== undefined) {
+      const plat = activePlatforms.find(p => p.id === pad.attachedPlatformId);
+      if (plat) {
+        const pRect = getPlatformRect(plat, tick);
+        return {
+          x: pRect.x + pad.localX,
+          y: pRect.y + pad.localY,
+          w: pad.w,
+          h: pad.h
+        };
+      }
+    }
+    return pad;
   }
 
-  function getMenuButtonBounds() {
-    return { x: canvas.width - 42, y: 8, w: 34, h: 28 };
+  function getStartMenuBtnBounds() { return { x: canvas.width / 2 - 100, y: 220, w: 200, h: 40 }; }
+  function getSettingsMenuBtnBounds() { return { x: canvas.width / 2 - 100, y: 275, w: 200, h: 40 }; }
+  function getTutorialMenuBtnBounds() { return { x: canvas.width / 2 - 100, y: 330, w: 200, h: 40 }; }
+  function getBackButtonBounds() { return { x: 8, y: 8, w: 70, h: 28 }; }
+  function getMenuButtonBounds() { return { x: canvas.width - 42, y: 8, w: 34, h: 28 }; }
+  function getPrevArrowBounds() { return { x: 40, y: 200, w: 32, h: 40 }; }
+  function getNextArrowBounds() { return { x: canvas.width - 72, y: 200, w: 32, h: 40 }; }
+
+  function startTutorial() {
+    isTutorial = true;
+    tutorialStep = 0;
+    activePlatforms = TUTORIAL_LEVEL.platforms;
+    currentHazards = [];
+    currentJumpPads = [];
+    currentPortals = [];
+    currentGoal = TUTORIAL_LEVEL.goal;
+    levelStartPos = TUTORIAL_LEVEL.startPos;
+    echoes.length = 0;
+    particles.length = 0;
+    runNumber = 1;
+    isMenuOpen = false;
+    startNewRun();
+    gameState = 'playing';
   }
 
-  function getPausePanelBounds() {
-    return { x: 260, y: 105, w: 280, h: 210 };
-  }
+  window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
-  function getResumeButtonBounds() {
-    const panel = getPausePanelBounds();
-    return { x: panel.x + 20, y: panel.y + 40, w: 240, h: 36 };
-  }
-
-  function getColorButtonBounds() {
-    const panel = getPausePanelBounds();
-    return { x: panel.x + 20, y: panel.y + 86, w: 240, h: 36 };
-  }
-
-  function getSelectMenuButtonBounds() {
-    const panel = getPausePanelBounds();
-    return { x: panel.x + 20, y: panel.y + 132, w: 240, h: 36 };
-  }
-
-  window.addEventListener('keydown', (e) => {
-    keys[e.code] = true;
-  });
-
-  window.addEventListener('keyup', (e) => {
-    keys[e.code] = false;
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    mouseX = (e.clientX - rect.left) * scaleX;
+    mouseY = (e.clientY - rect.top) * scaleY;
   });
 
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
 
-    if (gameState === 'levelSelect') {
-      if (checkPointInRect(clickX, clickY, getBackButtonBounds())) {
+    if (gameState === 'victory') {
+      const btn1 = { x: canvas.width / 2 - 100, y: 270, w: 200, h: 36 };
+      const btn2 = { x: canvas.width / 2 - 100, y: 320, w: 200, h: 36 };
+      if (checkPointInRect(clickX, clickY, btn1)) {
+        goToLevelSelect();
+        return;
+      }
+      if (checkPointInRect(clickX, clickY, btn2)) {
         gameState = 'menu';
+        return;
+      }
+      return;
+    }
+
+    if (gameState === 'menu') {
+      if (isSettingsOpen) {
+        if (checkPointInRect(clickX, clickY, { x: canvas.width / 2 - 100, y: 180, w: 200, h: 36 })) cyclePlayerColor();
+        if (checkPointInRect(clickX, clickY, { x: canvas.width / 2 - 100, y: 230, w: 200, h: 36 })) musicEnabled = !musicEnabled;
+        if (checkPointInRect(clickX, clickY, { x: canvas.width / 2 - 100, y: 280, w: 200, h: 36 })) sfxEnabled = !sfxEnabled;
+        if (checkPointInRect(clickX, clickY, { x: canvas.width / 2 - 100, y: 340, w: 200, h: 36 })) isSettingsOpen = false;
+        return;
+      }
+      if (checkPointInRect(clickX, clickY, getStartMenuBtnBounds())) { gameState = 'levelSelect'; return; }
+      if (checkPointInRect(clickX, clickY, getSettingsMenuBtnBounds())) { isSettingsOpen = true; return; }
+      if (checkPointInRect(clickX, clickY, getTutorialMenuBtnBounds())) { startTutorial(); return; }
+      return;
+    }
+
+    if (gameState === 'levelSelect') {
+      if (checkPointInRect(clickX, clickY, getBackButtonBounds())) { gameState = 'menu'; return; }
+      
+      const totalPages = Math.ceil(LEVELS.length / LEVELS_PER_PAGE);
+      if (levelSelectPage > 0 && checkPointInRect(clickX, clickY, getPrevArrowBounds())) {
+        levelSelectPage--;
+        return;
+      }
+      if (levelSelectPage < totalPages - 1 && checkPointInRect(clickX, clickY, getNextArrowBounds())) {
+        levelSelectPage++;
         return;
       }
 
       const levelPositions = getLevelNodePositions();
-      
-      levelPositions.forEach((node, index) => {
+      levelPositions.forEach((node) => {
         const dx = clickX - node.x;
         const dy = clickY - node.y;
-        const distanceSq = dx * dx + dy * dy;
-        
-        if (distanceSq <= node.radius * node.radius && index <= highestUnlockedLevel) {
-          loadLevel(index);
+        if (dx * dx + dy * dy <= node.radius * node.radius && node.index <= highestUnlockedLevel) {
+          loadLevel(node.index);
           gameState = 'playing';
         }
       });
@@ -442,24 +675,12 @@
     }
 
     if (gameState === 'playing') {
-      if (checkPointInRect(clickX, clickY, getMenuButtonBounds())) {
-        isMenuOpen = !isMenuOpen;
-        return;
-      }
-
+      if (checkPointInRect(clickX, clickY, getMenuButtonBounds())) { isMenuOpen = !isMenuOpen; return; }
       if (isMenuOpen) {
-        if (checkPointInRect(clickX, clickY, getResumeButtonBounds())) {
-          isMenuOpen = false;
-          return;
-        }
-        if (checkPointInRect(clickX, clickY, getColorButtonBounds())) {
-          cyclePlayerColor();
-          return;
-        }
-        if (checkPointInRect(clickX, clickY, getSelectMenuButtonBounds())) {
-          goToLevelSelect();
-          return;
-        }
+        const panel = { x: 260, y: 105, w: 280, h: 210 };
+        if (checkPointInRect(clickX, clickY, { x: panel.x + 20, y: panel.y + 40, w: 240, h: 36 })) { isMenuOpen = false; return; }
+        if (checkPointInRect(clickX, clickY, { x: panel.x + 20, y: panel.y + 86, w: 240, h: 36 })) { cyclePlayerColor(); return; }
+        if (checkPointInRect(clickX, clickY, { x: panel.x + 20, y: panel.y + 132, w: 240, h: 36 })) { goToLevelSelect(); return; }
       }
     }
   });
@@ -469,12 +690,16 @@
     player.y = levelStartPos.y;
     player.vx = 0;
     player.vy = 0;
+    player.grounded = false;
+    player.groundedObstacle = null;
+    portalCooldown = 0;
   }
 
   function startNewRun() {
     resetPlayerPosition();
     recordedFrames = [];
     isRecording = true;
+    runTickCount = 0;
 
     for (let i = 0; i < echoes.length; i++) {
       const echo = echoes[i];
@@ -492,6 +717,22 @@
     const lastFrame = frames.length > 0 ? frames[frames.length - 1] : fallbackPos;
     const initialFrame = frames.length > 0 ? frames[0] : fallbackPos;
 
+    let attachedPlatId = null;
+    let localX = 0;
+    let localY = 0;
+
+    if (player.groundedObstacle && player.groundedObstacle.id !== undefined && !player.groundedObstacle.isEcho) {
+      attachedPlatId = player.groundedObstacle.id;
+      const plat = activePlatforms.find(p => p.id === attachedPlatId);
+      if (plat) {
+        const platRect = getPlatformRect(plat, runTickCount);
+        localX = lastFrame.x - platRect.x;
+        localY = (reason === 'fell' ? getFallRestY() : lastFrame.y) - platRect.y;
+      } else {
+        attachedPlatId = null;
+      }
+    }
+
     echoes.push({
       frames: frames,
       index: 0,
@@ -501,7 +742,10 @@
       h: player.h,
       solid: false,
       restX: lastFrame.x,
-      restY: reason === 'fell' ? getFallRestY() : lastFrame.y
+      restY: reason === 'fell' ? getFallRestY() : lastFrame.y,
+      attachedPlatformId: attachedPlatId,
+      localX: localX,
+      localY: localY
     });
   }
 
@@ -525,23 +769,20 @@
       if (isTutorial) {
         isTutorial = false;
         tutorialCompleted = true;
-        triggerToast('Tutorial complete! Choose a level.', 2.4);
         goToLevelSelect();
         return;
       }
-
       completedLevels.add(currentLevelIndex);
-      
       if (currentLevelIndex + 1 < LEVELS.length && currentLevelIndex + 1 > highestUnlockedLevel) {
         highestUnlockedLevel = currentLevelIndex + 1;
       }
-      
-      const isGameFinished = completedLevels.size === LEVELS.length;
-      const completionText = isGameFinished 
-        ? 'All levels completed!' 
-        : `${LEVELS[currentLevelIndex].name} Complete!`;
-        
-      triggerToast(completionText, 2.4);
+
+      if (currentLevelIndex === LEVELS.length - 1) {
+        gameState = 'victory';
+        return;
+      }
+
+      triggerToast(`${LEVELS[currentLevelIndex].name} Complete!`, 2.4);
       goToLevelSelect();
       return;
     }
@@ -565,17 +806,16 @@
   function loadLevel(index) {
     currentLevelIndex = index;
     const levelData = LEVELS[index];
-    
     activePlatforms = levelData.platforms;
     currentHazards = levelData.hazards || [];
+    currentJumpPads = levelData.jumpPads || [];
+    currentPortals = levelData.portals || [];
     currentGoal = levelData.goal;
     levelStartPos = levelData.startPos;
-    
     echoes.length = 0;
     particles.length = 0;
     runNumber = 1;
     isMenuOpen = false;
-    
     startNewRun();
   }
 
@@ -584,64 +824,61 @@
     isMenuOpen = false;
   }
 
-  function getActiveSolidObjects() {
+  function getActiveSolidObjects(tick) {
     const solids = [];
-
     for (let i = 0; i < activePlatforms.length; i++) {
-      solids.push(getPlatformRect(activePlatforms[i], animationTimer));
+      solids.push(getPlatformRect(activePlatforms[i], tick));
     }
-
     for (let i = 0; i < echoes.length; i++) {
-      const echo = echoes[i];
-      if (echo.solid) {
-        solids.push({ x: echo.x, y: echo.y, w: echo.w, h: echo.h });
+      if (echoes[i].solid) {
+        solids.push({
+          id: `echo_${i}`,
+          isEcho: true,
+          attachedPlatformId: echoes[i].attachedPlatformId,
+          x: echoes[i].x,
+          y: echoes[i].y,
+          w: echoes[i].w,
+          h: echoes[i].h
+        });
       }
     }
-
     return solids;
   }
 
   function moveEntityWithCollisions(entity, deltaX, deltaY, solids) {
+    const preY = entity.y;
+
     entity.x += deltaX;
-    let bestX = null;
     for (let i = 0; i < solids.length; i++) {
       const obstacle = solids[i];
       if (checkAABBCollision(entity, obstacle)) {
-        let candidate;
-        if (deltaX > 0) candidate = obstacle.x - entity.w;
-        else if (deltaX < 0) candidate = obstacle.x + obstacle.w;
-        else continue;
-        const dist = Math.abs(candidate - entity.x);
-        if (bestX === null || dist < bestX.dist) {
-          bestX = { x: candidate, dist: dist };
+        if (deltaX > 0) {
+          entity.x = obstacle.x - entity.w;
+        } else if (deltaX < 0) {
+          entity.x = obstacle.x + obstacle.w;
         }
       }
-    }
-    if (bestX !== null) {
-      entity.x = bestX.x;
     }
 
     entity.y += deltaY;
     entity.grounded = false;
-    let bestY = null;
+    entity.groundedObstacle = null;
+
     for (let i = 0; i < solids.length; i++) {
       const obstacle = solids[i];
       if (checkAABBCollision(entity, obstacle)) {
-        let candidate, isGrounded;
-        if (deltaY > 0) { candidate = obstacle.y - entity.h; isGrounded = true; }
-        else if (deltaY < 0) { candidate = obstacle.y + obstacle.h; isGrounded = false; }
-        else continue;
-        const dist = Math.abs(candidate - entity.y);
-        if (bestY === null || dist < bestY.dist) {
-          bestY = { y: candidate, dist: dist, grounded: isGrounded };
+        const margin = Math.max(14, Math.abs(deltaY) + 10);
+        const wasAbove = (preY + entity.h) <= (obstacle.y + margin);
+
+        if (wasAbove || entity.vy >= 0) {
+          entity.y = obstacle.y - entity.h;
+          entity.vy = 0;
+          entity.grounded = true;
+          entity.groundedObstacle = obstacle;
+        } else {
+          entity.y = obstacle.y + obstacle.h;
+          entity.vy = 0;
         }
-      }
-    }
-    if (bestY !== null) {
-      entity.y = bestY.y;
-      entity.vy = 0;
-      if (bestY.grounded) {
-        entity.grounded = true;
       }
     }
   }
@@ -653,7 +890,6 @@
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
-
       if (p.life <= 0) {
         particles.splice(i, 1);
       }
@@ -661,55 +897,100 @@
   }
 
   function updateGameLogic(dt) {
-    animationTimer += dt;
-    
-    if (toastTimer > 0) {
-      toastTimer -= dt;
+    if (gameState === 'playing' && !isMenuOpen && !isTutorial) {
+      totalGameTime += dt;
     }
-    
+
+    runTickCount++;
+
+    if (toastTimer > 0) toastTimer -= dt;
+    if (portalCooldown > 0) portalCooldown -= dt;
     updateParticles(dt);
 
-    if (gameState === 'menu') {
-      if (keys['Space']) {
-        keys['Space'] = false;
-        if (!tutorialCompleted) {
-          startTutorial();
-        } else {
-          gameState = 'levelSelect';
-        }
-      }
-      return;
-    }
-
-    if (gameState === 'levelSelect') {
-      return;
-    }
+    if (gameState === 'menu' || gameState === 'levelSelect' || gameState === 'victory') return;
 
     if (keys['Escape']) {
       keys['Escape'] = false;
-      if (isMenuOpen) {
-        isMenuOpen = false;
-      } else {
-        goToLevelSelect();
-      }
+      if (isMenuOpen) isMenuOpen = false;
+      else goToLevelSelect();
       return;
     }
 
-    if (isMenuOpen) {
-      return;
+    if (isMenuOpen) return;
+
+    if (player.grounded && player.groundedObstacle) {
+      let obsRect = null;
+      if (player.groundedObstacle.isEcho) {
+        const echoIdx = parseInt(player.groundedObstacle.id.replace('echo_', ''));
+        if (echoes[echoIdx] && echoes[echoIdx].solid) {
+          obsRect = { x: echoes[echoIdx].x, y: echoes[echoIdx].y, w: echoes[echoIdx].w, h: echoes[echoIdx].h };
+        }
+      } else {
+        const plat = activePlatforms.find(p => p.id === player.groundedObstacle.id);
+        if (plat) {
+          obsRect = getPlatformRect(plat, runTickCount - 1);
+        }
+      }
+
+      if (obsRect && (player.x + player.w <= obsRect.x || player.x >= obsRect.x + obsRect.w)) {
+        player.grounded = false;
+        player.groundedObstacle = null;
+      }
+    }
+
+    if (player.grounded && player.groundedObstacle) {
+      let targetPlatId = null;
+      if (player.groundedObstacle.movable) {
+        targetPlatId = player.groundedObstacle.id;
+      } else if (player.groundedObstacle.isEcho && player.groundedObstacle.attachedPlatformId !== null) {
+        targetPlatId = player.groundedObstacle.attachedPlatformId;
+      }
+
+      if (targetPlatId !== null && targetPlatId !== undefined) {
+        const plat = activePlatforms.find(p => p.id === targetPlatId);
+        if (plat && plat.movable) {
+          const pNow = getPlatformRect(plat, runTickCount - 1);
+          const pNext = getPlatformRect(plat, runTickCount);
+          player.x += (pNext.x - pNow.x);
+          player.y += (pNext.y - pNow.y);
+        }
+      }
     }
 
     for (let i = 0; i < echoes.length; i++) {
       const echo = echoes[i];
-      if (echo.index < echo.frames.length) {
-        echo.x = echo.frames[echo.index].x;
-        echo.y = echo.frames[echo.index].y;
-        echo.index++;
-
-        if (echo.index >= echo.frames.length) {
-          echo.x = echo.restX;
-          echo.y = echo.restY;
-          echo.solid = true;
+      if (!echo.solid) {
+        if (echo.index < echo.frames.length) {
+          const frame = echo.frames[echo.index];
+          echo.x = frame.x;
+          echo.y = frame.y;
+          echo.index++;
+          if (echo.index >= echo.frames.length) {
+            if (echo.attachedPlatformId !== null && echo.attachedPlatformId !== undefined) {
+              const plat = activePlatforms.find(p => p.id === echo.attachedPlatformId);
+              if (plat) {
+                const platRect = getPlatformRect(plat, runTickCount);
+                echo.x = platRect.x + echo.localX;
+                echo.y = platRect.y + echo.localY;
+              } else {
+                echo.x = echo.restX;
+                echo.y = echo.restY;
+              }
+            } else {
+              echo.x = echo.restX;
+              echo.y = echo.restY;
+            }
+            echo.solid = true;
+          }
+        }
+      } else {
+        if (echo.attachedPlatformId !== null && echo.attachedPlatformId !== undefined) {
+          const plat = activePlatforms.find(p => p.id === echo.attachedPlatformId);
+          if (plat) {
+            const platRect = getPlatformRect(plat, runTickCount);
+            echo.x = platRect.x + echo.localX;
+            echo.y = platRect.y + echo.localY;
+          }
         }
       }
     }
@@ -722,22 +1003,49 @@
 
     if (moveDirection !== 0) {
       player.facing = moveDirection;
+      if (isTutorial && tutorialStep === 0) tutorialStep = 1;
     }
     player.vx = moveDirection * PHYSICS.moveSpeed;
 
     if (keys['Space'] && player.grounded) {
       player.vy = PHYSICS.jumpVelocity;
+      player.grounded = false;
+      player.groundedObstacle = null;
+      if (isTutorial && tutorialStep === 1) tutorialStep = 2;
     }
 
-    moveEntityWithCollisions(
-      player, 
-      player.vx * dt, 
-      player.vy * dt, 
-      getActiveSolidObjects()
-    );
+    const solids = getActiveSolidObjects(runTickCount);
+    moveEntityWithCollisions(player, player.vx * dt, player.vy * dt, solids);
+
+    for (let i = 0; i < currentJumpPads.length; i++) {
+      const pad = getJumpPadRect(currentJumpPads[i], runTickCount);
+      if (checkAABBCollision(player, pad)) {
+        player.vy = PHYSICS.jumpPadVelocity;
+      }
+    }
+
+    if (portalCooldown <= 0) {
+      for (let i = 0; i < currentPortals.length; i++) {
+        const port = currentPortals[i];
+        if (checkAABBCollision(player, port.entry)) {
+          player.x = port.exit.x;
+          player.y = port.exit.y;
+          player.vy = -350;
+          portalCooldown = 0.4;
+          spawnDeathParticles(port.entry.x + port.entry.w / 2, port.entry.y + port.entry.h / 2);
+          spawnDeathParticles(port.exit.x + 10, port.exit.y + 10);
+          triggerToast("Teleported!");
+          break;
+        }
+      }
+    }
+
+    if (isTutorial && tutorialStep === 2 && echoes.length > 0) {
+      tutorialStep = 3;
+    }
 
     if (isRecording) {
-      recordedFrames.push({ x: player.x, y: player.y });
+      recordedFrames.push({ x: player.x, y: player.y, tick: runTickCount });
     }
 
     if (isRecording && checkAABBCollision(player, currentGoal)) {
@@ -747,10 +1055,7 @@
 
     if (isRecording) {
       for (let i = 0; i < currentHazards.length; i++) {
-        if (checkAABBCollision(player, currentHazards[i])) {
-          endRun('hazard');
-          return;
-        }
+        if (checkAABBCollision(player, currentHazards[i])) { endRun('hazard'); return; }
       }
     }
 
@@ -769,26 +1074,20 @@
   function drawBackgroundPattern() {
     ctx.fillStyle = PALETTE.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     ctx.fillStyle = PALETTE.bgDot;
     for (let x = 12; x < canvas.width; x += 24) {
-      for (let y = 12; y < canvas.height; y += 24) {
-        ctx.fillRect(x, y, 2, 2);
-      }
+      for (let y = 12; y < canvas.height; y += 24) ctx.fillRect(x, y, 2, 2);
     }
   }
 
   function drawScanlines() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
-    for (let y = 0; y < canvas.height; y += 4) {
-      ctx.fillRect(0, y, canvas.width, 1);
-    }
+    for (let y = 0; y < canvas.height; y += 4) ctx.fillRect(0, y, canvas.width, 1);
   }
 
   function drawCharacterSprite(x, y, w, h, bodyColor, eyeColor, facingDirection) {
     ctx.fillStyle = bodyColor;
     ctx.fillRect(Math.round(x), Math.round(y), w, h);
-
     const eyeOffsetX = facingDirection >= 0 ? w - 9 : 5;
     ctx.fillStyle = eyeColor;
     ctx.fillRect(Math.round(x + eyeOffsetX), Math.round(y + 8), 4, 4);
@@ -797,11 +1096,9 @@
   function drawEchoObject(echo) {
     const renderX = Math.round(echo.x);
     const renderY = Math.round(echo.y);
-
     if (echo.solid) {
       ctx.fillStyle = PALETTE.echoSolidFill;
       ctx.fillRect(renderX, renderY, echo.w, echo.h);
-
       ctx.strokeStyle = PALETTE.echoSolidEdge;
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
@@ -816,7 +1113,6 @@
   function drawHazard(hz) {
     ctx.fillStyle = PALETTE.hazard;
     ctx.fillRect(hz.x, hz.y, hz.w, hz.h);
-
     ctx.fillStyle = PALETTE.hazardEdge;
     const spikeCount = Math.max(1, Math.floor(hz.w / 8));
     const spikeW = hz.w / spikeCount;
@@ -830,16 +1126,53 @@
     }
   }
 
+  function drawJumpPads() {
+    for (let i = 0; i < currentJumpPads.length; i++) {
+      const pad = getJumpPadRect(currentJumpPads[i], runTickCount);
+      ctx.fillStyle = PALETTE.jumpPad;
+      ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
+      ctx.fillStyle = PALETTE.jumpPadTop;
+      ctx.fillRect(pad.x, pad.y, pad.w, 4);
+    }
+  }
+
+  function drawPortals() {
+    const timeVal = performance.now() / 200;
+    for (let i = 0; i < currentPortals.length; i++) {
+      const port = currentPortals[i];
+      const entry = port.entry;
+
+      ctx.fillStyle = port.color || PALETTE.portal;
+      ctx.beginPath();
+      ctx.ellipse(entry.x + entry.w / 2, entry.y + entry.h / 2, entry.w / 2, entry.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      const pulse = 2 + Math.sin(timeVal) * 2;
+      ctx.ellipse(entry.x + entry.w / 2, entry.y + entry.h / 2, Math.max(1, entry.w / 4 - pulse), Math.max(1, entry.h / 4 - pulse), 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const exit = port.exit;
+      ctx.strokeStyle = port.color || PALETTE.portal;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(exit.x, exit.y, player.w, player.h);
+      ctx.setLineDash([]);
+    }
+  }
+
   function drawToastNotification() {
-    if (toastTimer <= 0) return;
+    if (toastTimer <= 0 || isTutorial) return;
 
     ctx.font = '13px "Courier New", monospace';
     ctx.globalAlpha = Math.min(1, toastTimer);
-    
     ctx.fillStyle = PALETTE.hudPanel;
     const textWidth = ctx.measureText(toastMessage).width + 24;
     ctx.fillRect(canvas.width / 2 - textWidth / 2, 44, textWidth, 26);
-
     ctx.fillStyle = PALETTE.hudText;
     ctx.textAlign = 'center';
     ctx.fillText(toastMessage, canvas.width / 2, 61);
@@ -848,32 +1181,23 @@
 
   function drawHUDOverlay() {
     const activeEchoCount = echoes.filter(e => e.solid).length;
-
     ctx.fillStyle = PALETTE.hudPanel;
     ctx.fillRect(8, 8, 320, 28);
-
     ctx.fillStyle = PALETTE.hudText;
     ctx.font = '13px "Courier New", monospace';
     ctx.textAlign = 'left';
-
-    const label = isTutorial
-      ? 'TUTORIAL'
-      : `${LEVELS[currentLevelIndex].name.toUpperCase()} (${currentLevelIndex + 1}/${LEVELS.length})`;
+    const label = isTutorial ? 'TUTORIAL' : `${LEVELS[currentLevelIndex].name.toUpperCase()} (${currentLevelIndex + 1}/${LEVELS.length})`;
     const hudString = `${label}   RUN ${runNumber}   ECHOES: ${activeEchoCount}/${echoes.length}`;
-
     ctx.fillText(hudString, 16, 27);
   }
 
   function drawBackButton() {
     const btn = getBackButtonBounds();
-
     ctx.fillStyle = PALETTE.hudPanel;
     ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
-
     ctx.strokeStyle = '#0d0e14';
     ctx.lineWidth = 1;
     ctx.strokeRect(btn.x + 0.5, btn.y + 0.5, btn.w - 1, btn.h - 1);
-
     ctx.font = '12px "Courier New", monospace';
     ctx.fillStyle = PALETTE.hudText;
     ctx.textAlign = 'center';
@@ -882,32 +1206,24 @@
 
   function drawMenuButton() {
     const btn = getMenuButtonBounds();
-
     ctx.fillStyle = PALETTE.hudPanel;
     ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
-
     ctx.strokeStyle = '#0d0e14';
     ctx.lineWidth = 1;
     ctx.strokeRect(btn.x + 0.5, btn.y + 0.5, btn.w - 1, btn.h - 1);
-
     ctx.fillStyle = PALETTE.hudText;
-    for (let i = 0; i < 3; i++) {
-      ctx.fillRect(btn.x + 6, btn.y + 7 + i * 7, btn.w - 12, 3);
-    }
+    for (let i = 0; i < 3; i++) ctx.fillRect(btn.x + 6, btn.y + 7 + i * 7, btn.w - 12, 3);
   }
 
   function drawPauseMenu() {
     ctx.fillStyle = 'rgba(13, 14, 20, 0.75)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const panel = getPausePanelBounds();
+    const panel = { x: 260, y: 105, w: 280, h: 210 };
     ctx.fillStyle = PALETTE.hudPanel;
     ctx.fillRect(panel.x, panel.y, panel.w, panel.h);
-
     ctx.strokeStyle = '#0d0e14';
     ctx.lineWidth = 2;
     ctx.strokeRect(panel.x + 1, panel.y + 1, panel.w - 2, panel.h - 2);
-
     ctx.font = 'bold 18px "Courier New", monospace';
     ctx.fillStyle = PALETTE.hudText;
     ctx.textAlign = 'center';
@@ -916,44 +1232,129 @@
     const renderButton = (bounds, label) => {
       ctx.fillStyle = '#1a1c2c';
       ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
-
       ctx.strokeStyle = PLAYER_COLORS[playerColorIndex];
       ctx.lineWidth = 1;
       ctx.strokeRect(bounds.x + 0.5, bounds.y + 0.5, bounds.w - 1, bounds.h - 1);
-
       ctx.font = '13px "Courier New", monospace';
       ctx.fillStyle = PALETTE.hudText;
       ctx.textAlign = 'center';
       ctx.fillText(label, bounds.x + bounds.w / 2, bounds.y + bounds.h / 2 + 5);
     };
 
-    renderButton(getResumeButtonBounds(), 'RESUME');
-    renderButton(getColorButtonBounds(), 'CHANGE COLOR');
-    renderButton(getSelectMenuButtonBounds(), 'LEVEL SELECT');
+    renderButton({ x: panel.x + 20, y: panel.y + 40, w: 240, h: 36 }, 'RESUME');
+    renderButton({ x: panel.x + 20, y: panel.y + 86, w: 240, h: 36 }, 'CHANGE COLOR');
+    renderButton({ x: panel.x + 20, y: panel.y + 132, w: 240, h: 36 }, 'LEVEL SELECT');
 
-    const colorBtn = getColorButtonBounds();
+    const colorBtn = { x: panel.x + 20, y: panel.y + 86, w: 240, h: 36 };
     ctx.fillStyle = PLAYER_COLORS[playerColorIndex];
     ctx.fillRect(colorBtn.x + colorBtn.w - 26, colorBtn.y + 10, 16, 16);
   }
 
-  function drawMainMenu() {
+  function drawVictoryScreen() {
     drawBackgroundPattern();
 
+    ctx.fillStyle = 'rgba(13, 14, 20, 0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#00b4d8';
+    ctx.fillRect(180, 75, 440, 28);
+
+    ctx.font = 'bold 32px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffca36';
+    ctx.fillText('THANK YOU FOR PLAYING', canvas.width / 2, 145);
+
+    ctx.fillStyle = '#00b4d8';
+    ctx.fillRect(180, 195, 440, 18);
+
+    const mins = Math.floor(totalGameTime / 60);
+    const secs = Math.floor(totalGameTime % 60);
+    const formattedTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.fillStyle = PALETTE.hudText;
+    ctx.fillText(`TOTAL TIME TAKEN: ${formattedTime}`, canvas.width / 2, 238);
+
+    const renderMenuBtn = (bounds, text) => {
+      ctx.fillStyle = PALETTE.hudPanel;
+      ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      ctx.strokeStyle = '#00b4d8';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      ctx.font = 'bold 15px "Courier New", monospace';
+      ctx.fillStyle = PALETTE.hudText;
+      ctx.textAlign = 'center';
+      ctx.fillText(text, bounds.x + bounds.w / 2, bounds.y + 23);
+    };
+
+    renderMenuBtn({ x: canvas.width / 2 - 100, y: 270, w: 200, h: 36 }, 'LEVEL SELECT');
+    renderMenuBtn({ x: canvas.width / 2 - 100, y: 320, w: 200, h: 36 }, 'MAIN MENU');
+
+    drawScanlines();
+  }
+
+  function drawMainMenu() {
+    drawBackgroundPattern();
     ctx.font = 'bold 64px "Courier New", monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#0d0e14';
-    ctx.fillText('ECHO', canvas.width / 2 + 4, 174);
+    ctx.fillText('ECHO', canvas.width / 2 + 4, 144);
     ctx.fillStyle = PLAYER_COLORS[playerColorIndex];
-    ctx.fillText('ECHO', canvas.width / 2, 170);
+    ctx.fillText('ECHO', canvas.width / 2, 140);
 
     ctx.font = '14px "Courier New", monospace';
     ctx.fillStyle = '#c3c9e8';
-    ctx.fillText('every run you make becomes a platform for the next one', canvas.width / 2, 210);
+    ctx.fillText('every run you make becomes a platform for the next one', canvas.width / 2, 180);
 
-    if (Math.floor(animationTimer * 2) % 2 === 0) {
-      ctx.font = 'bold 18px "Courier New", monospace';
-      ctx.fillStyle = '#f4f4f4';
-      ctx.fillText('PRESS SPACE TO START', canvas.width / 2, 280);
+    const renderMenuBtn = (bounds, text) => {
+      ctx.fillStyle = PALETTE.hudPanel;
+      ctx.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      ctx.strokeStyle = PLAYER_COLORS[playerColorIndex];
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
+      ctx.font = 'bold 16px "Courier New", monospace';
+      ctx.fillStyle = PALETTE.hudText;
+      ctx.textAlign = 'center';
+      ctx.fillText(text, bounds.x + bounds.w / 2, bounds.y + 25);
+    };
+
+    if (!isSettingsOpen) {
+      const startBounds = getStartMenuBtnBounds();
+      ctx.fillStyle = PALETTE.hudPanel;
+      ctx.fillRect(startBounds.x, startBounds.y, startBounds.w, startBounds.h);
+      ctx.strokeStyle = PLAYER_COLORS[playerColorIndex];
+      ctx.lineWidth = 2;
+      ctx.strokeRect(startBounds.x, startBounds.y, startBounds.w, startBounds.h);
+      
+      ctx.font = 'bold 16px "Courier New", monospace';
+      ctx.textAlign = 'center';
+
+      const menuTime = performance.now() / 1000;
+      const flickerAlpha = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(menuTime * 2.5));
+      ctx.fillStyle = `rgba(244, 244, 244, ${flickerAlpha})`;
+      ctx.fillText('START', startBounds.x + startBounds.w / 2, startBounds.y + 25);
+
+      renderMenuBtn(getSettingsMenuBtnBounds(), 'SETTINGS');
+      renderMenuBtn(getTutorialMenuBtnBounds(), 'TUTORIAL');
+    } else {
+      ctx.fillStyle = 'rgba(13, 14, 20, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const panel = { x: 250, y: 80, w: 300, h: 310 };
+      ctx.fillStyle = PALETTE.hudPanel;
+      ctx.fillRect(panel.x, panel.y, panel.w, panel.h);
+      ctx.font = 'bold 20px "Courier New", monospace';
+      ctx.fillStyle = PALETTE.hudText;
+      ctx.textAlign = 'center';
+      ctx.fillText('SETTINGS', canvas.width / 2, 130);
+
+      const colorBounds = { x: canvas.width / 2 - 100, y: 180, w: 200, h: 36 };
+      renderMenuBtn(colorBounds, 'COLOR');
+      ctx.fillStyle = PLAYER_COLORS[playerColorIndex];
+      ctx.fillRect(colorBounds.x + colorBounds.w - 30, colorBounds.y + 9, 18, 18);
+
+      renderMenuBtn({ x: canvas.width / 2 - 100, y: 230, w: 200, h: 36 }, `MUSIC: ${musicEnabled ? 'ON' : 'OFF'}`);
+      renderMenuBtn({ x: canvas.width / 2 - 100, y: 280, w: 200, h: 36 }, `SFX: ${sfxEnabled ? 'ON' : 'OFF'}`);
+      renderMenuBtn({ x: canvas.width / 2 - 100, y: 340, w: 200, h: 36 }, 'CLOSE');
     }
 
     drawScanlines();
@@ -964,32 +1365,20 @@
     const radius = 22;
     const spacingX = 130;
     const spacingY = 88;
-    
     const startX = (canvas.width - (columns - 1) * spacingX) / 2;
-    const startY = 108;
-    
+    const startY = 130;
     const nodes = [];
 
-    for (let i = 0; i < LEVELS.length; i++) {
-      const col = i % columns;
-      const row = Math.floor(i / columns);
+    const pageStartIndex = levelSelectPage * LEVELS_PER_PAGE;
+    const pageEndIndex = Math.min(pageStartIndex + LEVELS_PER_PAGE, LEVELS.length);
 
-      nodes.push({
-        x: startX + col * spacingX,
-        y: startY + row * spacingY,
-        radius: radius
-      });
+    for (let i = pageStartIndex; i < pageEndIndex; i++) {
+      const pageOffset = i - pageStartIndex;
+      const col = pageOffset % columns;
+      const row = Math.floor(pageOffset / columns);
+      nodes.push({ x: startX + col * spacingX, y: startY + row * spacingY, radius: radius, index: i });
     }
-
     return nodes;
-  }
-
-  function drawLevelNode(x, y, radius, color) {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.closePath();
   }
 
   function drawLockIcon(x, y) {
@@ -1004,17 +1393,31 @@
   }
 
   function drawCompletionCheckmark(x, y, radius) {
-    const badgeX = x + radius - 10;
-    const badgeY = y - radius + 10;
-
+    const badgeX = x + radius - 6;
+    const badgeY = y - radius + 6;
     ctx.fillStyle = '#1a1c2c';
     ctx.fillRect(badgeX - 8, badgeY - 8, 16, 16);
-
     ctx.fillStyle = PALETTE.completed;
-    ctx.fillRect(badgeX - 4, badgeY, 3, 3);
-    ctx.fillRect(badgeX - 1, badgeY + 3, 3, 3);
-    ctx.fillRect(badgeX + 2, badgeY - 3, 3, 3);
-    ctx.fillRect(badgeX + 5, badgeY - 6, 3, 3);
+    
+    ctx.fillRect(badgeX - 4, badgeY, 2, 2);
+    ctx.fillRect(badgeX - 2, badgeY + 2, 2, 2);
+    ctx.fillRect(badgeX, badgeY + 4, 2, 2);
+    ctx.fillRect(badgeX + 2, badgeY + 2, 2, 2);
+    ctx.fillRect(badgeX + 4, badgeY, 2, 2);
+    ctx.fillRect(badgeX + 6, badgeY - 2, 2, 2);
+  }
+
+  function drawPixelArrow(x, y, dir) {
+    ctx.fillStyle = PALETTE.hudText;
+    if (dir === 'left') {
+      ctx.fillRect(x + 12, y + 8, 12, 24);
+      ctx.fillRect(x + 8, y + 12, 4, 16);
+      ctx.fillRect(x + 4, y + 16, 4, 8);
+    } else {
+      ctx.fillRect(x + 8, y + 8, 12, 24);
+      ctx.fillRect(x + 20, y + 12, 4, 16);
+      ctx.fillRect(x + 24, y + 16, 4, 8);
+    }
   }
 
   function drawProgressBar() {
@@ -1027,7 +1430,7 @@
     const segmentHeight = 14;
     
     const startX = canvas.width / 2 - barWidth / 2;
-    const startY = 390;
+    const startY = 385;
 
     ctx.font = '12px "Courier New", monospace';
     ctx.fillStyle = '#9aa0b8';
@@ -1057,29 +1460,39 @@
     ctx.fillStyle = PLAYER_COLORS[playerColorIndex];
     ctx.fillText('SELECT LEVEL', canvas.width / 2, 55);
 
-    const nodes = getLevelNodePositions();
+    const totalPages = Math.ceil(LEVELS.length / LEVELS_PER_PAGE);
+    
+    if (levelSelectPage > 0) {
+      const prev = getPrevArrowBounds();
+      drawPixelArrow(prev.x, prev.y, 'left');
+    }
+    if (levelSelectPage < totalPages - 1) {
+      const next = getNextArrowBounds();
+      drawPixelArrow(next.x, next.y, 'right');
+    }
 
+    const nodes = getLevelNodePositions();
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
-      const isUnlocked = i <= highestUnlockedLevel;
-      const isCompleted = completedLevels.has(i);
+      const isUnlocked = node.index <= highestUnlockedLevel;
+      const isCompleted = completedLevels.has(node.index);
 
-      const fillColor = isUnlocked ? PLAYER_COLORS[playerColorIndex] : PALETTE.locked;
-      drawLevelNode(node.x, node.y, node.radius, fillColor);
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fillStyle = isUnlocked ? PLAYER_COLORS[playerColorIndex] : PALETTE.locked;
+      ctx.fill();
+      ctx.closePath();
 
-      if (!isUnlocked) {
-        drawLockIcon(node.x, node.y);
-      } else {
+      if (isUnlocked) {
         ctx.font = 'bold 16px "Courier New", monospace';
         ctx.fillStyle = '#0d0e14';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(String(i + 1), node.x, node.y + 1);
+        ctx.fillText(String(node.index + 1), node.x, node.y + 1);
         ctx.textBaseline = 'alphabetic';
-
-        if (isCompleted) {
-          drawCompletionCheckmark(node.x, node.y, node.radius);
-        }
+        if (isCompleted) drawCompletionCheckmark(node.x, node.y, node.radius);
+      } else {
+        drawLockIcon(node.x, node.y);
       }
     }
 
@@ -1088,7 +1501,7 @@
     ctx.font = '12px "Courier New", monospace';
     ctx.fillStyle = '#7a82a8';
     ctx.textAlign = 'center';
-    ctx.fillText('click an unlocked level to play', canvas.width / 2, 430);
+    ctx.fillText('click an unlocked level to play', canvas.width / 2, 425);
 
     drawScanlines();
   }
@@ -1098,41 +1511,27 @@
 
     for (let i = 0; i < activePlatforms.length; i++) {
       const p = activePlatforms[i];
-      const rect = getPlatformRect(p, animationTimer);
-
+      const rect = getPlatformRect(p, runTickCount);
       ctx.fillStyle = p.movable ? PALETTE.platformMoving : PALETTE.platform;
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-
       ctx.fillStyle = PALETTE.platformEdge;
       ctx.fillRect(rect.x, rect.y, rect.w, 3);
     }
 
-    for (let i = 0; i < currentHazards.length; i++) {
-      drawHazard(currentHazards[i]);
-    }
+    drawJumpPads();
+    drawPortals();
+
+    for (let i = 0; i < currentHazards.length; i++) drawHazard(currentHazards[i]);
 
     ctx.fillStyle = PALETTE.goal;
     ctx.fillRect(currentGoal.x, currentGoal.y, currentGoal.w, currentGoal.h);
-    
     ctx.fillStyle = PALETTE.goalEdge;
     ctx.fillRect(currentGoal.x, currentGoal.y, currentGoal.w, 3);
 
-    for (let i = 0; i < echoes.length; i++) {
-      if (!echoes[i].solid) drawEchoObject(echoes[i]);
-    }
-    for (let i = 0; i < echoes.length; i++) {
-      if (echoes[i].solid) drawEchoObject(echoes[i]);
-    }
+    for (let i = 0; i < echoes.length; i++) if (!echoes[i].solid) drawEchoObject(echoes[i]);
+    for (let i = 0; i < echoes.length; i++) if (echoes[i].solid) drawEchoObject(echoes[i]);
 
-    drawCharacterSprite(
-      player.x, 
-      player.y, 
-      player.w, 
-      player.h, 
-      PLAYER_COLORS[playerColorIndex], 
-      PALETTE.playerEye, 
-      player.facing
-    );
+    drawCharacterSprite(player.x, player.y, player.w, player.h, PLAYER_COLORS[playerColorIndex], PALETTE.playerEye, player.facing);
 
     ctx.fillStyle = PALETTE.particle;
     for (let i = 0; i < particles.length; i++) {
@@ -1145,32 +1544,30 @@
     drawHUDOverlay();
 
     if (isTutorial) {
-      ctx.font = '12px "Courier New", monospace';
-      ctx.fillStyle = '#c3c9e8';
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillStyle = '#ffca36';
       ctx.textAlign = 'center';
-      ctx.fillText('Fall into the gap — your echo settles and becomes a bridge.', canvas.width / 2, 70);
+      let promptText = '';
+      if (tutorialStep === 0) promptText = "NARRATOR: Use A/D or Arrow keys to move left and right!";
+      else if (tutorialStep === 1) promptText = "NARRATOR: Press Space to jump over obstacles!";
+      else if (tutorialStep === 2) promptText = "NARRATOR: Fall into the gap to leave an Echo platform!";
+      else promptText = "NARRATOR: Use your solid Echo as a bridge to reach the goal!";
+      ctx.fillText(promptText, canvas.width / 2, 60);
     }
 
     drawMenuButton();
     drawScanlines();
 
-    if (isMenuOpen) {
-      drawPauseMenu();
-    }
+    if (isMenuOpen) drawPauseMenu();
   }
 
   function render() {
-    if (gameState === 'menu') {
-      drawMainMenu();
-    } else if (gameState === 'levelSelect') {
-      drawLevelSelectScreen();
-    } else {
-      drawGameplayScreen();
-    }
+    if (gameState === 'victory') drawVictoryScreen();
+    else if (gameState === 'menu') drawMainMenu();
+    else if (gameState === 'levelSelect') drawLevelSelectScreen();
+    else drawGameplayScreen();
 
-    if (gameState !== 'playing' || !isMenuOpen) {
-      drawToastNotification();
-    }
+    if (gameState === 'playing' && !isMenuOpen) drawToastNotification();
   }
 
   let lastFrameTime = performance.now();
@@ -1179,7 +1576,6 @@
   function gameLoop(currentTime) {
     const deltaTime = (currentTime - lastFrameTime) / 1000;
     lastFrameTime = currentTime;
-
     accumulator += deltaTime;
 
     while (accumulator >= PHYSICS.timeStep) {
@@ -1194,4 +1590,4 @@
   requestAnimationFrame(gameLoop);
 </script>
 </body>
-</html
+</html>
