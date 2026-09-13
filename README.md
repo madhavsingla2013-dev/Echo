@@ -4,7 +4,7 @@
 
 **Echo** is a minimalist browser platformer where you use your past mistakes to beat the level. Whenever you fall into the void or hit a spike, a ghost of your previous attempt—an **Echo**—replays your movement and freezes solid. That frozen ghost stays behind as a bridge or stepping stone, turning bad runs into actual progress.
 
-I built this using pure vanilla JavaScript and the HTML5 Canvas API—no heavy engines or external libraries.
+I built this using pure vanilla JavaScript and the HTML5.
 
 ---
 
@@ -21,9 +21,9 @@ Your goal is simple: reach the **green exit**. If a jump looks impossible or a g
 
 ## What's Inside
 
-* **30 Levels + Tutorial:** Starts simple to teach the echo mechanic, then introduces moving platforms and spike traps.
+* **49 Levels + Tutorial + Boss Level:** Starts simple to teach the echo mechanic, then introduces moving platforms and spike traps.
 * **Level Progression:** Unlocks levels as you beat them, tracks your total progress, and saves checkmarks.
 * **Customization:** Swap your player sprite's color anytime from the pause menu.
 * **Retro(or Arcade)Vibes:** Pixel-art style, scanlines, particle effects, and custom HUD.
-
+* **Shop:** A shop to get tools, hats, etc.
 ---
